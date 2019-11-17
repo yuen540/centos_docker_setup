@@ -27,8 +27,17 @@ yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 systemctl enable --now kubelet
 # RemoveSwap
 swapoff -a
-# Change network proc to 1
+# Change network proc to 1 (Might not be required)
 cat /usr/lib/sysctl.d/00-system.conf
 firewall-cmd --permanent --add-port=6443/tcp
 firewall-cmd --permanent --add-port=10250/tcp
 kubeadm init
+
+# Create the kubernetes config in home directory
+mkdir -p $HOME/.kube
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
+
+#Create pod network so containers can talk to each other
+export kubever=$(kubectl version | base64 | tr -d '\n')
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$kubever"
